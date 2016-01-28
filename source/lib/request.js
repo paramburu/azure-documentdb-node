@@ -69,7 +69,14 @@ function createRequestObject(connectionPolicy, requestOptions, callback){
         });
         response.on("end", function() {
             if (response.statusCode >= 400) {
-                callback({code: response.statusCode, body: data}, undefined, response.headers);
+                var errObj = {code: response.statusCode, body: data};
+                var retryMs = response.headers[Constants.HttpHeaders.RetryAfterInMilliseconds];
+
+                if(retryMs) {
+                    errObj.retryMs = parseInt(retryMs);
+                }
+
+                callback(errObj, undefined, response.headers);
                 return;
             }
 
